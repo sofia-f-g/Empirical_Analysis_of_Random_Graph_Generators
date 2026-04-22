@@ -31,40 +31,58 @@ def plot_degree_distributions(params, n, seed=0, bins="auto"):
     Make three plots for one graph realization:
     1. indegree histogram
     2. outdegree histogram
-    3. indegree CCDF on log-log axes
+    3. indegree vs outdegree CCDF on log-log axes
     """
     indegree, outdegree, total_degree = get_directed_degree_arrays(params, n, seed=seed)
 
     fig, axes = plt.subplots(1, 3, figsize=(16, 4))
 
-    # --- 1. Indegree histogram ---
+    # 1. Indegree histogram
     axes[0].hist(indegree, bins=bins)
     axes[0].set_title("Indegree Histogram")
     axes[0].set_xlabel("indegree")
     axes[0].set_ylabel("count")
 
-    # --- 2. Outdegree histogram ---
+    # 2. Outdegree histogram
     axes[1].hist(outdegree, bins=bins)
     axes[1].set_title("Outdegree Histogram")
     axes[1].set_xlabel("outdegree")
     axes[1].set_ylabel("count")
 
-    # --- 3. Indegree CCDF ---
-    k_vals, ccdf_vals = empirical_ccdf(indegree)
+    # 3. Indegree vs Outdegree CCDF
+    k_in, ccdf_in = empirical_ccdf(indegree)
+    k_out, ccdf_out = empirical_ccdf(outdegree)
 
-    mask = (k_vals > 0) & (ccdf_vals > 0)
-    axes[2].plot(k_vals[mask], ccdf_vals[mask], marker="o", linestyle="none")
+    mask_in = (k_in > 0) & (ccdf_in > 0)
+    mask_out = (k_out > 0) & (ccdf_out > 0)
+
+    axes[2].plot(
+        k_in[mask_in],
+        ccdf_in[mask_in],
+        marker="o",
+        linestyle="none",
+        label="indegree"
+    )
+    axes[2].plot(
+        k_out[mask_out],
+        ccdf_out[mask_out],
+        marker="x",
+        linestyle="none",
+        label="outdegree"
+    )
+
     axes[2].set_xscale("log")
     axes[2].set_yscale("log")
-    axes[2].set_title("Indegree CCDF (log-log)")
+    axes[2].set_title("Degree CCDF Comparison (log-log)")
     axes[2].set_xlabel("k")
     axes[2].set_ylabel("P(K >= k)")
+    axes[2].legend()
 
     beta = params["beta"]
     gamma = params["gamma"]
     fig.suptitle(f"Degree diagnostics: n={n}, beta={beta}, gamma={gamma}, seed={seed}")
-
     fig.tight_layout()
+
     return fig
 
 
@@ -74,7 +92,7 @@ def plot_degree_distributions_grid(param_list, n, seed=0, bins="auto", row_label
     and three columns:
       1. indegree histogram
       2. outdegree histogram
-      3. indegree CCDF (log-log)
+      3. indegree vs outdegree CCDF (log-log)
     """
     nrows = len(param_list)
     fig, axes = plt.subplots(nrows, 3, figsize=(16, 4 * nrows), squeeze=False)
@@ -82,27 +100,48 @@ def plot_degree_distributions_grid(param_list, n, seed=0, bins="auto", row_label
     for row_idx, params in enumerate(param_list):
         indegree, outdegree, total_degree = get_directed_degree_arrays(params, n, seed=seed)
 
+        label_value = params[row_label]
+
         # 1. Indegree histogram
         axes[row_idx, 0].hist(indegree, bins=bins)
-        axes[row_idx, 0].set_title(f"Indegree Histogram ({row_label}={params[row_label]})")
+        axes[row_idx, 0].set_title(f"Indegree Histogram ({row_label}={label_value})")
         axes[row_idx, 0].set_xlabel("indegree")
         axes[row_idx, 0].set_ylabel("count")
 
         # 2. Outdegree histogram
         axes[row_idx, 1].hist(outdegree, bins=bins)
-        axes[row_idx, 1].set_title(f"Outdegree Histogram ({row_label}={params[row_label]})")
+        axes[row_idx, 1].set_title(f"Outdegree Histogram ({row_label}={label_value})")
         axes[row_idx, 1].set_xlabel("outdegree")
         axes[row_idx, 1].set_ylabel("count")
 
-        # 3. Indegree CCDF
-        k_vals, ccdf_vals = empirical_ccdf(indegree)
-        mask = (k_vals > 0) & (ccdf_vals > 0)
-        axes[row_idx, 2].plot(k_vals[mask], ccdf_vals[mask], marker="o", linestyle="none")
+        # 3. Indegree vs Outdegree CCDF
+        k_in, ccdf_in = empirical_ccdf(indegree)
+        k_out, ccdf_out = empirical_ccdf(outdegree)
+
+        mask_in = (k_in > 0) & (ccdf_in > 0)
+        mask_out = (k_out > 0) & (ccdf_out > 0)
+
+        axes[row_idx, 2].plot(
+            k_in[mask_in],
+            ccdf_in[mask_in],
+            marker="o",
+            linestyle="none",
+            label="indegree"
+        )
+        axes[row_idx, 2].plot(
+            k_out[mask_out],
+            ccdf_out[mask_out],
+            marker="x",
+            linestyle="none",
+            label="outdegree"
+        )
+
         axes[row_idx, 2].set_xscale("log")
         axes[row_idx, 2].set_yscale("log")
-        axes[row_idx, 2].set_title(f"Indegree CCDF ({row_label}={params[row_label]})")
+        axes[row_idx, 2].set_title(f"Degree CCDF Comparison ({row_label}={label_value})")
         axes[row_idx, 2].set_xlabel("k")
         axes[row_idx, 2].set_ylabel("P(K >= k)")
+        axes[row_idx, 2].legend()
 
     # figure headline including fixed/varying beta/gamma
     beta_values = {params["beta"] for params in param_list}
@@ -160,7 +199,7 @@ if __name__ == "__main__":
         row_label="gamma",
     )
 
-    path1 = output_dir / f"degree_diagnostics_fixed_beta{fixed_beta}_vary_gamma_n{n}_seed{seed}.png"
+    path1 = output_dir / f"version2_degree_diagnostics_fixed_beta{fixed_beta}_vary_gamma_n{n}_seed{seed}.png"
     fig1.savefig(path1, dpi=200, bbox_inches="tight")
     print(f"Saved plot to: {path1}")
     plt.close(fig1)
@@ -185,7 +224,7 @@ if __name__ == "__main__":
         row_label="beta",
     )
 
-    path2 = output_dir / f"degree_diagnostics_fixed_gamma{fixed_gamma}_vary_beta_n{n}_seed{seed}.png"
+    path2 = output_dir / f"version2_degree_diagnostics_fixed_gamma{fixed_gamma}_vary_beta_n{n}_seed{seed}.png"
     fig2.savefig(path2, dpi=200, bbox_inches="tight")
     print(f"Saved plot to: {path2}")
     plt.close(fig2)
