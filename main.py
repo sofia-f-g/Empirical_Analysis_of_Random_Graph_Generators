@@ -16,8 +16,8 @@ def build_range(start, stop, step):
 
 
 if __name__ == "__main__":
-    beta_cfg = {"min": 0.01, "max": 0.8, "step": 0.1}    # edit step to change beta resolution
-    gamma_cfg = {"min": 0.0, "max": 1.0, "step": 0.1}   # edit step to change gamma resolution
+    beta_cfg = {"min": 0.01, "max": 0.81, "step": 0.05}    # edit step to change beta resolution
+    gamma_cfg = {"min": 0.0, "max": 1.0, "step": 0.05}   # edit step to change gamma resolution
 
     base_params = {
         "beta":       beta_cfg["min"],
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     """
 
 
-    n, R, base_seed = 1000, 10, 0
+    n, R, base_seed = 100, 10, 0
 
     param_grid = run.make_param_grid(ranges_dict, base_params)
     print(f"Running {len(param_grid)} parameter combinations x {R} replicates = {len(param_grid) * R} simulations")

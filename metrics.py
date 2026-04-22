@@ -68,7 +68,7 @@ def degree_histogram(deg):
 
     return k_values, counts
 
-def estimate_powerlaw_exponent(deg, k_min=None):
+def estimate_powerlaw_exponent(deg, k_min=None, min_tail=20, min_k=2, max_k_percentile=90):
     """ Estimates the power-law tail exponent alpha using Maximum Likelihood
         Estimation (Hill estimator): alpha = 1 + n * [sum(ln(k_i/k_min))]^-1
 
@@ -76,65 +76,115 @@ def estimate_powerlaw_exponent(deg, k_min=None):
         automatically by minimizing the Kolmogorov-Smirnov distance between the
         empirical tail CDF and the fitted power-law CDF.
 
-        Returns a dict with:
-            alpha   - estimated tail exponent
-            k_min   - lower cutoff used
-            n_tail  - number of vertices in the tail (degree >= k_min)
+    Parameters
+    ----------
+    deg : array-like
+        Degree sequence.
+    k_min : int or None
+        Fixed lower cutoff for the tail. If None, choose automatically by
+        minimizing KS distance over candidate k_min values.
+    min_tail : int
+        Minimum number of tail observations required for a valid fit.
+    min_k_min : int
+        Smallest k_min to consider when searching automatically.
+    max_k_min_percentile : float
+        Only consider candidate k_min values up to this percentile of the
+        observed degree distribution, to avoid extremely short tails.
+
     """
 
     degrees = np.asarray(deg, dtype=float)
+    degrees = degrees[np.isfinite(degrees)]
     degrees = degrees[degrees >= 1]  # exclude isolates (degree 0)
 
-    if len(degrees) < 2:
-        return {'alpha': float('nan'), 'k_min': None, 'n_tail': 0}
+    def invalid_result(reason, k_min_value=None, n_tail=0):
+        return {
+            "alpha": float("nan"),
+            "k_min": None if k_min_value is None else int(k_min_value),
+            "n_tail": int(n_tail),
+            "ks": float("nan"),
+            "valid_fit": False,
+            "reason": reason,
+        }
 
-    if k_min is None:
-        # Search over candidate k_min values (up to the 95th percentile to keep
-        # enough tail points for a reliable fit)
-        candidates = np.unique(degrees.astype(int))
-        candidates = candidates[candidates <= np.percentile(degrees, 95)]
+    if len(degrees) < min_tail:
+        return invalid_result("insufficient_degree_data")
+    
+    def fit_for_k(k):
+        """
+        Fit alpha for a fixed k_min = k.
+        Return a result dict if valid, else None.
+        """
 
-        best_k_min = candidates[0]
-        best_alpha = float('nan')
-        best_D = float('inf')
+        tail = degrees[degrees >= k]
+        n = len(tail)
 
-        for k in candidates:
-            tail = degrees[degrees >= k]
-            n = len(tail)
-            if n < 2:
-                continue
+        if n < min_tail:
+            return None
 
-            log_sum = np.sum(np.log(tail / k))
-            if log_sum == 0:
-                continue
-            alpha_k = 1.0 + n / log_sum
+        log_sum = np.sum(np.log(tail / k))
+        if not np.isfinite(log_sum) or log_sum <= 0:
+            return None
 
-            # KS distance between empirical and theoretical CDF
-            sorted_tail = np.sort(tail)
-            empirical_cdf = np.arange(1, n + 1) / n
-            theoretical_cdf = 1.0 - (k / sorted_tail) ** (alpha_k - 1)
-            D = np.max(np.abs(empirical_cdf - theoretical_cdf))
+        alpha = 1.0 + n / log_sum
+        if not np.isfinite(alpha):
+            return None
 
-            if D < best_D:
-                best_D = D
-                best_k_min = k
-                best_alpha = alpha_k
+        sorted_tail = np.sort(tail)
+        empirical_cdf = np.arange(1, n + 1, dtype=float) / n
 
-        k_min = best_k_min
+        # Continuous Pareto-style fitted CDF on the tail
+        theoretical_cdf = 1.0 - (k / sorted_tail) ** (alpha - 1.0)
+        ks = np.max(np.abs(empirical_cdf - theoretical_cdf))
 
-    tail = degrees[degrees >= k_min]
-    n = len(tail)
+        return {
+            "alpha": float(alpha),
+            "k_min": int(k),
+            "n_tail": int(n),
+            "ks": float(ks),
+            "valid_fit": True,
+            "reason": "ok",
+        }
+    
+    # Case 1: fixed user-supplied k_min
+    if k_min is not None:
+        fit = fit_for_k(k_min)
+        if fit is None:
+            tail = degrees[degrees >= k_min]
+            return invalid_result(
+                "tail_too_small_or_degenerate",
+                k_min_value=k_min,
+                n_tail=len(tail),
+            )
+        return fit
+    
+    # Case 2: automatic search over candidate k_min values
 
-    if n < 2:
-        return {'alpha': float('nan'), 'k_min': int(k_min), 'n_tail': n}
+    # Search over candidate k_min values (up to the 95th percentile to keep
+    # enough tail points for a reliable fit)
+    candidates = np.unique(degrees.astype(int))
+    candidates = candidates[candidates >= min_k]
 
-    log_sum = np.sum(np.log(tail / k_min))
-    if log_sum == 0:
-        return {'alpha': float('nan'), 'k_min': int(k_min), 'n_tail': int(n)}
-    alpha = 1.0 + n / log_sum
+    upper = np.percentile(degrees, max_k_percentile)
+    candidates = candidates[candidates <= upper]
 
-    return {'alpha': float(alpha), 'k_min': int(k_min), 'n_tail': int(n)}
+    if len(candidates) == 0:
+        return invalid_result("no_kmin_candidates_after_percentile_cap")
 
+    best_fit = None
+
+    for k in candidates:
+        fit = fit_for_k(k)
+        if fit is None:
+            continue
+
+        if best_fit is None or fit["ks"] < best_fit["ks"]:
+            best_fit = fit
+
+    if best_fit is None:
+        return invalid_result("no_valid_tail_candidate")
+
+    return best_fit
 
 ### Clustering ###
 
@@ -236,7 +286,11 @@ def compute_metrics(V, E):
         'avg_local_clustering': cc['avg_local'],
         'global_clustering': cc['global'],
         'avg_shortest_path_length': aspl,
+
         'powerlaw_alpha': pl['alpha'],
         'powerlaw_k_min': pl['k_min'],
         'powerlaw_n_tail': pl['n_tail'],
+        'powerlaw_ks': pl['ks'],
+        'powerlaw_valid': pl['valid_fit'],
+        'powerlaw_reason': pl['reason'],
     }
