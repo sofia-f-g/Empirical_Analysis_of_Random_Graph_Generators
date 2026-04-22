@@ -38,7 +38,8 @@ def set_seed(seed):
 ### Vertex sampling ###
 def sample_vertices_fixed_n(n, d, space_cfg, age_cfg, rng):
     """ Samples n vertices with positions in our chosen spatial window/torus
-        and birth times (0, 1) returning a vertex table/array """
+        and birth times uniformly on a configurable interval, typically (0,n) for 
+        the conditioned finite model returning a vertex table/array """
     
     if n < 0:
         raise ValueError('n must be non-negative')
@@ -73,8 +74,8 @@ def sample_vertices_fixed_n(n, d, space_cfg, age_cfg, rng):
 
     # --- Sample ages / 'birth times' --- #
     age_distribution = 'uniform'  # Kan ändras till age_cfg.get('distribution', 'uniform')
-
-    t_min = float(age_cfg.get('min', 0.0))
+    eps = np.nextafter(0.0, 1.0)
+    t_min = max(float(age_cfg.get('min', 0.0)), eps)
     t_max = float(age_cfg.get('max', 1.0))
 
     if not (t_max > t_min):
