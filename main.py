@@ -22,7 +22,7 @@ if __name__ == "__main__":
     eps = np.nextafter(0.0, 1.0)
 
     beta_cfg = {"min": eps, "max": 2.0, "step": 0.25}    # edit step to change beta resolution
-    gamma_cfg = {"min": eps, "max": 1.0, "step": 0.4}   # edit step to change gamma resolution
+    gamma_cfg = {"min": eps, "max": 1.0, "step": 0.2}   # edit step to change gamma resolution
 
     base_params = {
         "beta":       beta_cfg["min"],
@@ -63,6 +63,8 @@ if __name__ == "__main__":
         "avg_local_clustering_mean",
         "global_clustering_mean",
 
+        "outdegree_mean_vs_theory_ratio",
+        "expected_theoretical_outdegree_mean",
         "outdegree_mean_mean",
         "indegree_mean_mean",
         "outdegree_max_mean",

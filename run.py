@@ -134,7 +134,23 @@ def summarise_over_replicates(result_table, run_label=None):
                     counts[v] = counts.get(v, 0) + 1
                 most_common = max(counts, key=counts.get)
                 summary_row[col + '_mode'] = most_common
-                
+
+        # Temporary theory benchmark from the paper's normalized-profile formula:
+        # E[D_out] ≈ beta / (1 - gamma)
+        # Only valid for 0 < gamma < 1.
+        if 0 < float(gamma) < 1:
+            summary_row['expected_theoretical_outdegree_mean'] = float(beta) / (1.0 - float(gamma))
+        else:
+            summary_row['expected_theoretical_outdegree_mean'] = float('nan')
+
+        theo = summary_row['expected_theoretical_outdegree_mean']
+        empirical = summary_row.get('outdegree_mean_mean', float('nan'))
+
+        if np.isfinite(theo) and theo != 0 and np.isfinite(empirical):
+            summary_row['outdegree_mean_vs_theory_ratio'] = empirical / theo
+        else:
+            summary_row['outdegree_mean_vs_theory_ratio'] = float('nan')
+                     
         summary_table.append(summary_row)
 
     if run_label is not None:
