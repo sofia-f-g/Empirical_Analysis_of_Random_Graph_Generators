@@ -40,13 +40,40 @@ def build_adjacency(V, E, directed=False):
 
 
 def compute_degree_sequences(V, E):
-    """ Computes in- and out-degree arrays for all vertices from 
-        the undirected edge list """
+    """
+    Computes indegree, outdegree, and total degree arrays for all vertices
+    from the directed edge list.
+
+    Edges are assumed to be stored as (src, dst), where src is the younger
+    vertex and dst is the older vertex.
+    """
     
-    adjacency = build_adjacency(V, E)
-    degrees = np.array([len(neigh) for neigh in adjacency], dtype=int)
-    dict = {'id': np.asarray(V['id']), 'degree': degrees}
-    return dict
+    vertex_ids = np.asarray(V['id'])
+    n = len(vertex_ids)
+
+    indegree = np.zeros(n, dtype=int)
+    outdegree = np.zeros(n, dtype=int)
+
+    if E is not None and len(E) > 0:
+        edges = np.asarray(E, dtype=int)
+        index_of = {int(v_id): idx for idx, v_id in enumerate(vertex_ids)}
+
+        for src_id, dst_id in edges:
+
+            src = index_of[src_id]
+            dst = index_of[dst_id]
+
+            outdegree[src] += 1
+            indegree[dst] += 1
+    
+    total_degree = indegree + outdegree
+
+    return {
+        'id': np.asarray(V['id']),
+        'indegree': indegree,
+        'outdegree': outdegree,
+        'total_degree': total_degree,
+    }
     
 
 
@@ -271,26 +298,33 @@ def compute_metrics(V, E):
     n_edges = 0 if E is None or len(E) == 0 else len(E)
 
     deg_seq = compute_degree_sequences(V, E)
-    degrees = deg_seq['degree']
+    indegree = deg_seq['indegree']
+    outdegree = deg_seq['outdegree']
+    total_degree = deg_seq['total_degree']
 
     cc = clustering_coefficient(V, E)
     aspl = average_shortest_path_length(V, E)
-    pl = estimate_powerlaw_exponent(degrees)
+    #pl = estimate_powerlaw_exponent(degrees)
 
     return {
         'n_vertices': n_vertices,
         'n_edges': n_edges,
-        'degree_mean': float(np.mean(degrees)),
-        'degree_max': int(np.max(degrees)),
-        'degree_min': int(np.min(degrees)),
+
+        'indegree_mean': float(np.mean(indegree)),
+        'indegree_max': int(np.max(indegree)),
+        'outdegree_mean': float(np.mean(outdegree)),
+        'outdegree_max': int(np.max(outdegree)),
+        'total_degree_mean': float(np.mean(total_degree)),
+        'total_degree_max': int(np.max(total_degree)),
+
         'avg_local_clustering': cc['avg_local'],
         'global_clustering': cc['global'],
         'avg_shortest_path_length': aspl,
 
-        'powerlaw_alpha': pl['alpha'],
-        'powerlaw_k_min': pl['k_min'],
-        'powerlaw_n_tail': pl['n_tail'],
-        'powerlaw_ks': pl['ks'],
-        'powerlaw_valid': pl['valid_fit'],
-        'powerlaw_reason': pl['reason'],
+        #'powerlaw_alpha': pl['alpha'],
+        #'powerlaw_k_min': pl['k_min'],
+        #'powerlaw_n_tail': pl['n_tail'],
+        #'powerlaw_ks': pl['ks'],
+        #'powerlaw_valid': pl['valid_fit'],
+        #'powerlaw_reason': pl['reason'],
     }

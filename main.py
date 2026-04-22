@@ -17,12 +17,12 @@ def build_range(start, stop, step):
 
 
 if __name__ == "__main__":
-    n, R, base_seed = 100, 10, 0
+    n, R, base_seed = 200, 5, 0
 
     eps = np.nextafter(0.0, 1.0)
 
-    beta_cfg = {"min": eps, "max": 0.8, "step": 0.2}    # edit step to change beta resolution
-    gamma_cfg = {"min": eps, "max": 1.0, "step": 0.2}   # edit step to change gamma resolution
+    beta_cfg = {"min": eps, "max": 2.0, "step": 0.25}    # edit step to change beta resolution
+    gamma_cfg = {"min": eps, "max": 1.0, "step": 0.4}   # edit step to change gamma resolution
 
     base_params = {
         "beta":       beta_cfg["min"],
@@ -58,10 +58,17 @@ if __name__ == "__main__":
 
     metrics_to_plot = [
         "n_edges_mean",
-        "avg_local_clustering_mean",
         "avg_shortest_path_length_mean",
-        "degree_mean_mean",
+
+        "avg_local_clustering_mean",
         "global_clustering_mean",
+
+        "outdegree_mean_mean",
+        "indegree_mean_mean",
+        "outdegree_max_mean",
+        "indegree_max_mean",
+
+        
     ]
     plot_path = run.plot_metric_panels(summary_table, metrics_to_plot, x_param="beta", y_param="gamma", run_label=run_label)
     if plot_path:
