@@ -17,12 +17,12 @@ def build_range(start, stop, step):
 
 
 if __name__ == "__main__":
-    n, R, base_seed = 200, 5, 0
+    n, R, base_seed = 1000, 3, 0
 
     eps = np.nextafter(0.0, 1.0)
 
-    beta_cfg = {"min": eps, "max": 2.0, "step": 0.25}    # edit step to change beta resolution
-    gamma_cfg = {"min": eps, "max": 1.0, "step": 0.2}   # edit step to change gamma resolution
+    beta_cfg = {"min": 0.1, "max": 2.0, "step": 0.3}    # edit step to change beta resolution
+    gamma_cfg = {"min": 0.1, "max": 1.0, "step": 0.2}   # edit step to change gamma resolution
 
     base_params = {
         "beta":       beta_cfg["min"],
