@@ -17,7 +17,7 @@ def build_range(start, stop, step):
 
 
 if __name__ == "__main__":
-    n, R, base_seed = 1000, 3, 0
+    n, R, base_seed = 200, 3, 0
 
     eps = np.nextafter(0.0, 1.0)
 
