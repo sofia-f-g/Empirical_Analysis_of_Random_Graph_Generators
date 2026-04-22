@@ -30,7 +30,7 @@ if __name__ == "__main__":
         "dim":        2,
         "space_cfg":  {"bounds": [[-0.5, 0.5], [-0.5, 0.5]]},
         "age_cfg":    {"min": 0.0, "max": float(n)},
-        "profile_cfg": {"a": 0.5},
+        "profile_cfg": {"type": "normalized_cutoff"},
     }
 
     ranges_dict = {
@@ -38,15 +38,6 @@ if __name__ == "__main__":
         "gamma": build_range(gamma_cfg["min"], gamma_cfg["max"], gamma_cfg["step"]),
     }
 
-    """ Changed to hard-coding for interesting regions 
-    fine_beta = [0.05, 0.08, 0.11, 0.14, 0.17, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.80]
-    fine_gamma = [0.00, 0.02, 0.05, 0.08, 0.10, 0.15, 0.20, 0.30, 0.40, 0.50, 0.70, 0.90, 1.00]
-
-    ranges_dict = {
-        "beta":  fine_beta,
-        "gamma": fine_gamma,
-    }
-    """
 
     param_grid = run.make_param_grid(ranges_dict, base_params)
     print(f"Running {len(param_grid)} parameter combinations x {R} replicates = {len(param_grid) * R} simulations")
