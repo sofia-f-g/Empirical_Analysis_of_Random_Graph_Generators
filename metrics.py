@@ -217,7 +217,14 @@ def estimate_powerlaw_exponent(deg, k_min=None, min_tail=20, min_k=2, max_k_perc
 
 def clustering_coefficient(V, E):
 
-    """ Computes global or average local clustering """
+    """
+    Compute average local clustering and global clustering
+    on the undirected projection of the graph.
+
+    Average local clustering is computed only over vertices
+    with undirected degree at least 2, matching the definition
+    used in the reference paper.
+    """
 
     adj = build_adjacency(V, E, directed=False)
     adj_sets = [set(neighbors) for neighbors in adj]
@@ -225,15 +232,16 @@ def clustering_coefficient(V, E):
 
     n = len(adj)
     local_coeffs = []
-    triangle_sum = 0
-    triplet_sum = 0
+    triangle_sum = 0.0
+    triplet_sum = 0.0
+    n_degree_ge_2 = 0
 
     for v in range(n):
         deg = len(adj[v])
         if deg < 2:
-            local_coeffs.append(0.0)
             continue
-
+        
+        n_degree_ge_2 += 1
         possible = deg * (deg - 1) / 2
         edges_between = 0
         neighbors = adj[v]
@@ -246,10 +254,10 @@ def clustering_coefficient(V, E):
         triangle_sum += edges_between
         triplet_sum += possible
 
-    avg_local = sum(local_coeffs) / n if n > 0 else 0.0
-    global_cc = triangle_sum / triplet_sum if triplet_sum > 0 else 0.0
+    avg_local = float(np.mean(local_coeffs)) if n_degree_ge_2 > 0 else 0.0  # We must have at least one node with more than 2 neighbours
+    global_cc = float(triangle_sum / triplet_sum) if triplet_sum > 0 else 0.0
 
-    return {'avg_local': float(avg_local), 'global': float(global_cc)}
+    return {'avg_local': avg_local, 'global': global_cc, 'n_deg_ge_2': int(n_degree_ge_2),}
 
 
 ### Paths / Distances ###
@@ -318,6 +326,7 @@ def compute_metrics(V, E):
         'total_degree_max': int(np.max(total_degree)),
 
         'avg_local_clustering': cc['avg_local'],
+        'vertices_degree_ge_2': cc['n_deg_ge_2'],
         'global_clustering': cc['global'],
         'avg_shortest_path_length': aspl,
 
