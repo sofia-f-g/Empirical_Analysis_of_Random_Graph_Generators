@@ -130,28 +130,34 @@ def torus_distance(x, y, L=1.0):
     
     return float(np.sqrt(np.sum(diff ** 2)))
 
-def phi_profile_function(r, profile_cfg):
-    """ Computes the profile value as a function of distance-like input """
-    """ We begin by a hard cut-off function, could be modified later """
+def phi_profile_function(r, profile_cfg, d):
+    """
+    Normalized deterministic cut-off profile.
 
-    # Profile function from section 2 (iv) in Peter Gracar's paper
-    # phi(x) = (1/(2a)) * 1_[0,a](x)
-    # Right now we don't know why a must be >= 1/2. research this!
+    In dimension d=2 we choose
+        phi(r) = 1{r <= 1/pi}
+    so that
+        ∫_{R^2} phi(|x|^2) dx = 1.
+    """
 
-    a = float(profile_cfg.get('a', 0.5))
+    if d != 2:
+        raise NotImplementedError(
+            "Normalized deterministic cutoff profile is currently implemented only for d=2."
+        ) 
 
-    if a < 0.5:
-        raise ValueError('profile_cfg[a] must satisfy a >= 0.5')
+    cutoff = 1.0 / np.pi
     
-    if 0 <= r <= a: 
-        return 1.0 / (2.0 * a)
+    if  0.0 <= r <= cutoff: 
+        return 1.0
     else: 
         return 0.0
 
 
 def connection_prob(v_i, v_j, params):
-    """ Implements the model's connection probability for a directed edge i -> j,
-        using ages, distance and parameters like beta, gamma and phi """
+    """ 
+    Implements the model's connection probability for a directed edge i -> j,
+    using ages, distance and parameters like beta, gamma and phi 
+    """
     
     # --- Read parameters from params dictionary --- #
     beta = float(params['beta'])
@@ -170,7 +176,7 @@ def connection_prob(v_i, v_j, params):
 
     r = (t_young * torus_distance(pos_i, pos_j)**d) / (beta * (t_young/t_old)**gamma)
 
-    return phi_profile_function(r, profile_cfg)
+    return phi_profile_function(r, profile_cfg, d)
     
 
 
