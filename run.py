@@ -116,13 +116,25 @@ def summarise_over_replicates(result_table, run_label=None):
         summary_row = {'beta': beta, 'gamma': gamma, 'dim': dim}
         for col in all_cols:
             values = [r[col] for r in rows]
-            stats = statistics.compute_stats(values)
-            summary_row[col + '_mean']    = stats['mean']
-            summary_row[col + '_median']  = stats['median']
-            summary_row[col + '_std']     = stats['std']
-            summary_row[col + '_cv']      = stats['cv']
-            summary_row[col + '_ci_low']  = stats['ci_low']
-            summary_row[col + '_ci_high'] = stats['ci_high']
+
+            # Try to treat column as numeric
+            try:
+                numeric_values = np.asarray(values, dtype=float)
+                stats = statistics.compute_stats(numeric_values)
+                summary_row[col + '_mean']    = stats['mean']
+                summary_row[col + '_median']  = stats['median']
+                summary_row[col + '_std']     = stats['std']
+                summary_row[col + '_cv']      = stats['cv']
+                summary_row[col + '_ci_low']  = stats['ci_low']
+                summary_row[col + '_ci_high'] = stats['ci_high']
+            except (ValueError, TypeError):
+                # Non-numeric column: store most common value
+                counts = {}
+                for v in values:
+                    counts[v] = counts.get(v, 0) + 1
+                most_common = max(counts, key=counts.get)
+                summary_row[col + '_mode'] = most_common
+                
         summary_table.append(summary_row)
 
     if run_label is not None:
