@@ -138,11 +138,35 @@ def summarise_over_replicates(result_table, run_label=None):
         # Temporary theory benchmark from the paper's normalized-profile formula:
         # E[D_out] ≈ beta / (1 - gamma)
         # Only valid for 0 < gamma < 1.
-        if 0 < float(gamma) < 1:
-            summary_row['expected_theoretical_outdegree_mean'] = float(beta) / (1.0 - float(gamma))
-        else:
-            summary_row['expected_theoretical_outdegree_mean'] = float('nan')
+        # if 0 < float(gamma) < 1:
+        #     summary_row['expected_theoretical_outdegree_mean'] = float(beta) / (1.0 - float(gamma))
+        # else:
+        #     summary_row['expected_theoretical_outdegree_mean'] = float('nan')
+        gamma_float = float(gamma)
+        beta_float = float(beta)
 
+        if 0.0 < gamma_float < 1.0:
+            summary_row["expected_theoretical_outdegree_mean"] = (
+                beta_float / (1.0 - gamma_float)
+            )
+
+            # PMF/mass-function exponent:
+            #     P(D_in = k) ~ k^(-alpha_theory)
+            summary_row["indegree_powerlaw_alpha_theory"] = (
+                1.0 + 1.0 / gamma_float
+            )
+
+            # CCDF exponent/slope:
+            #     P(D_in >= k) ~ k^(-1/gamma)
+            summary_row["indegree_ccdf_slope_theory"] = (
+                -1.0 / gamma_float
+            )
+        else:
+            summary_row["expected_theoretical_outdegree_mean"] = float("nan")
+            summary_row["indegree_powerlaw_alpha_theory"] = float("nan")
+            summary_row["indegree_ccdf_slope_theory"] = float("nan")
+
+            
         theo = summary_row['expected_theoretical_outdegree_mean']
         empirical = summary_row.get('outdegree_mean_mean', float('nan'))
 
