@@ -27,7 +27,32 @@ def validate_params(params):
     """ Checks that parameters are in valid ranged ranges
         and raises clear error if not """
     
-    return None #raises error if wrong 
+    beta = float(params.get("beta", np.nan))
+    gamma = float(params.get("gamma", np.nan))
+    dim = int(params.get("dim", 2))
+
+    if not np.isfinite(beta) or beta <= 0:
+        raise ValueError("beta must be positive.")
+
+    if not np.isfinite(gamma) or not (0.0 < gamma < 1.0):
+        raise ValueError("gamma must satisfy 0 < gamma < 1.")
+
+    if dim != 2:
+        raise NotImplementedError(
+            "This implementation currently supports only dim=2 "
+            "because the normalized cutoff profile is hard-coded as 1/pi."
+        )
+
+    profile_cfg = params.get("profile_cfg", {})
+    profile_type = profile_cfg.get("type", "normalized_cutoff")
+    if profile_type != "normalized_cutoff":
+        raise NotImplementedError(
+            "Only profile_cfg['type']='normalized_cutoff' is currently implemented."
+        )
+
+    return None
+
+
 
 def set_seed(seed):
     """ Creates and returns reproducible RNG object used by all sampling steps """
@@ -76,7 +101,8 @@ def sample_vertices_fixed_n(n, d, space_cfg, age_cfg, rng):
     age_distribution = 'uniform'  # Kan ändras till age_cfg.get('distribution', 'uniform')
     eps = np.nextafter(0.0, 1.0)
     t_min = max(float(age_cfg.get('min', 0.0)), eps)
-    t_max = float(age_cfg.get('max', 1.0))
+    t_max = float(age_cfg.get('max', float(n)))
+    # t_max = float(age_cfg.get('max', 1.0))
 
     if not (t_max > t_min):
         raise ValueError('age_cfg must have max > min')
