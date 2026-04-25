@@ -40,7 +40,6 @@ def run_replicates(params, n, R, base_seed):
         rows.append(row)
     return rows
 
-
 ### Sweeps + Aggregation ###
 
 def make_param_grid(ranges_dict, base_params):
@@ -68,11 +67,11 @@ def make_param_grid(ranges_dict, base_params):
 
 
 def parameter_sweep(param_grid, n, R, base_seed, progress_updates=100):
-    """ Runs R replicates for each parameter setting in param_grid and
-        collects all results into a flat table suitable for plots.
-        Saves raw results to CSV and returns (result_table, run_label). """
-
-    run_label = "sweep_" + datetime.now().strftime("%Y%m%d_%H%M%S")
+    """ 
+    Runs R replicates for each parameter setting in param_grid and
+    collects all results into a flat table suitable for plots.
+    Saves raw results to CSV and returns (result_table, run_label). 
+    """
 
     result_table = []
     total = len(param_grid)
@@ -85,8 +84,9 @@ def parameter_sweep(param_grid, n, R, base_seed, progress_updates=100):
         if idx % stride == 0 or idx == total:
             combos_done = idx
             sims_done = idx * R
-            print(f"[sweep {run_label}] {combos_done}/{total} combos finished ({sims_done} sims)")
+            print(f"{combos_done}/{total} combos finished ({sims_done} sims)")
 
+    run_label = make_finished_time_label()
     results_io.save_raw_results(result_table, run_label)
 
     return result_table, run_label
@@ -174,7 +174,7 @@ def summarise_over_replicates(result_table, run_label=None):
             summary_row['outdegree_mean_vs_theory_ratio'] = empirical / theo
         else:
             summary_row['outdegree_mean_vs_theory_ratio'] = float('nan')
-                     
+
         summary_table.append(summary_row)
 
     if run_label is not None:
@@ -211,7 +211,7 @@ def plot_metric_vs_param(summary_table, metric_key, x_param="beta", y_param="gam
 
     return fig if created_fig else ax
 
-def plot_metric_panels(summary_table, metric_keys, x_param="beta", y_param="gamma", run_label=None, output_dir="results/plots"):
+def plot_metric_panels(summary_table, metric_keys, x_param="beta", y_param="gamma", run_label=None, output_dir="results/plots", plot_info=None):
     if not metric_keys:
         return None
     
@@ -220,20 +220,34 @@ def plot_metric_panels(summary_table, metric_keys, x_param="beta", y_param="gamm
     fig, axes = plt.subplots(nrows, ncols, figsize=(6 * ncols, 4 * nrows), squeeze=False)
     axes = axes.ravel()
 
+    if plot_info is not None:
+        title_parts = []
+        for key, value in plot_info.items():
+            title_parts.append(f"{key}={value}")
+
+        fig.suptitle(
+            ", ".join(title_parts),
+            fontsize=14,
+            y=1.02,
+        )
+
     for idx, metric_key in enumerate(metric_keys):
         plot_metric_vs_param(summary_table, metric_key, x_param=x_param, y_param=y_param, ax=axes[idx], show_colorbar=True)
 
     for idx in range(len(metric_keys), len(axes)):
         fig.delaxes(axes[idx])
 
-    fig.tight_layout()
+    fig.tight_layout(rect=[0, 0, 1, 0.97])
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    filename = (run_label or "plots") + "_" + datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    filename = run_label or make_finished_time_label()
     filepath = output_dir / f"{filename}.png"
+
     fig.savefig(filepath, dpi=200)
     plt.close(fig)
+    
     return str(filepath)
 
 ### --- HELPER METHODS --- ###
@@ -273,3 +287,24 @@ def _select_ticks(values, max_ticks=6):
 def _pretty_metric(metric_key):
     label = metric_key[:-5] + " (mean)" if metric_key.endswith("_mean") else metric_key
     return label.replace("_", " ").title()
+
+def make_finished_time_label():
+    month_names = {
+        1: "january",
+        2: "february",
+        3: "march",
+        4: "april",
+        5: "may",
+        6: "june",
+        7: "july",
+        8: "august",
+        9: "september",
+        10: "october",
+        11: "november",
+        12: "december",
+    }
+
+    now = datetime.now()
+    month = month_names[now.month]
+
+    return f"{now.day}{month}_{now.strftime('%H%M')}"
