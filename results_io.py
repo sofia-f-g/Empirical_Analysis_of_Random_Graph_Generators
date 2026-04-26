@@ -72,7 +72,7 @@ def save_summary(summary_table, run_label, results_dir="results/summary"):
 
 ### Loading Results ###
 
-def load_raw_results(filepath):
+def load_raw_results(filepath, delimiter=';'):
     """Reads a raw results CSV back into a list of dicts.
 
     Parameters
@@ -87,7 +87,7 @@ def load_raw_results(filepath):
         All values are strings; cast as needed after loading.
     """
     with open(filepath, newline="") as f:
-        reader = csv.DictReader(f)
+        reader = csv.DictReader(f, delimiter=delimiter)
         return list(reader)
 
 
