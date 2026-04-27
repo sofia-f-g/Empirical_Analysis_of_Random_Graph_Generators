@@ -218,7 +218,7 @@ def plot_degree_distributions(params, n, seed=0, bins="auto", show_theory=True):
     axes[2].set_title("Degree CCDF Comparison (log-log)")
     axes[2].set_xlabel("k")
     axes[2].set_ylabel("P(K >= k)")
-    axes[2].legend()
+    axes[2].legend(loc="upper right")
 
     beta = params["beta"]
     gamma = params["gamma"]
@@ -290,7 +290,7 @@ def plot_degree_distributions_grid(param_list, n, seed=0, bins="auto", row_label
         axes[row_idx, 2].set_title(f"Degree CCDF Comparison ({row_label}={label_value})")
         axes[row_idx, 2].set_xlabel("k")
         axes[row_idx, 2].set_ylabel("P(K >= k)")
-        axes[row_idx, 2].legend()
+        axes[row_idx, 2].legend(loc="upper right")
 
     # figure headline including fixed/varying beta/gamma
     beta_values = {params["beta"] for params in param_list}
