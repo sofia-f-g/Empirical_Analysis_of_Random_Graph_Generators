@@ -257,10 +257,10 @@ def clustering_coefficient(V, E):
         triangle_sum += edges_between
         triplet_sum += possible
 
-    avg_local = float(np.mean(local_coeffs)) if n_degree_ge_2 > 0 else 0.0  # We must have at least one node with more than 2 neighbours
+    avg_local = float(np.mean(local_coeffs)) if n_degree_ge_2 > 0 else 0.0  # # We must have at least one node with degree at least 2
     global_cc = float(triangle_sum / triplet_sum) if triplet_sum > 0 else 0.0
 
-    return {'avg_local': avg_local, 'global': global_cc, 'n_deg_ge_2': int(n_degree_ge_2),}
+    return {'avg_local': avg_local, 'global': global_cc, 'n_deg_ge_2': int(n_degree_ge_2),'closed_wedges': float(triangle_sum), 'wedges': float(triplet_sum),}
 
 
 ### Paths / Distances ###
@@ -327,6 +327,9 @@ def compute_metrics(V, E):
         'vertices_degree_ge_2': cc['n_deg_ge_2'],
         'global_clustering': cc['global'],
         'avg_shortest_path_length': aspl,
+
+        'closed_wedges': cc['closed_wedges'],
+        'wedges': cc['wedges'],
 
         #'powerlaw_alpha': pl['alpha'],
         #'powerlaw_k_min': pl['k_min'],

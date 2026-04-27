@@ -3,8 +3,10 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 
 from distributions import plot_degree_distributions_grid
+import limit_experiment
 import run
 import numpy as np
+from datetime import datetime
 
 def build_range(start, stop, step):
     if step <= 0:
@@ -41,6 +43,8 @@ def run_degree_distribution_plots(beta_values, gamma_values, n, seed):
     output_dir = Path("distribution_plots")
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    run_stamp = datetime.now().strftime("%d%b_%H%M").lower()
+
     param_list = []
 
     for beta in beta_values:
@@ -51,17 +55,17 @@ def run_degree_distribution_plots(beta_values, gamma_values, n, seed):
         row_label = "gamma"
         beta = beta_values[0]
         gamma = gamma_values[0]
-        filename = f"degree_diagnostics_beta{beta}_gamma{gamma}_n{n}_seed{seed}.png"
+        filename = f"{run_stamp}_beta{beta}_gamma{gamma}_n{n}.png"
 
     elif len(beta_values) == 1:
         row_label = "gamma"
         fixed_beta = beta_values[0]
-        filename = f"degree_diagnostics_fixed_beta{fixed_beta}_vary_gamma_n{n}_seed{seed}.png"
+        filename = f"{run_stamp}_fixed_beta{fixed_beta}_n{n}.png"
 
     else:
         row_label = "beta"
         fixed_gamma = gamma_values[0]
-        filename = f"degree_diagnostics_fixed_gamma{fixed_gamma}_vary_beta_n{n}_seed{seed}.png"
+        filename = f"{run_stamp}_fixed_gamma{fixed_gamma}_n{n}.png"
 
     fig = plot_degree_distributions_grid(
         param_list=param_list,
@@ -132,19 +136,20 @@ if __name__ == "__main__":
     # -----------------------------
     # General simulation settings
     # -----------------------------  
-    n, R, base_seed = 200, 100, 0
+    n, R, base_seed = 200, 50, 0
     # -----------------------------
     # Choose what to run
     # -----------------------------
     hardcoded = False
     run_heatmaps = False
-    run_ccdf_plots = True
+    run_ccdf_plots = False
+    run_clustering_limit = True
     
     # -----------------------------
     # Heat-map / parameter sweep settings
     # -----------------------------
     if not hardcoded:
-        beta_cfg = {"min": 0.05, "max": 3.0, "step": 0.2}    # edit step to change beta resolution
+        beta_cfg = {"min": 50.0, "max": 250.0, "step": 50.0}    # edit step to change beta resolution
         gamma_cfg = {"min": 0.05, "max": 0.95, "step": 0.1}   # edit step to change gamma resolution KAN INTE VARA 1 ENLIGT TEORIN!!
     else:
         beta_cfg = [0.1, 0.3, 0.5]
@@ -179,12 +184,12 @@ if __name__ == "__main__":
 
         # Valid examples:
         # One beta, multiple gamma:
-        ccdf_beta_values = [3.0]
-        ccdf_gamma_values = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+        # ccdf_beta_values = [3.0]
+        # ccdf_gamma_values = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
         # Or multiple beta, one gamma:
-        # ccdf_beta_values = [0.4, 0.8, 1.2, 2.0, 3.0]
-        # ccdf_gamma_values = [0.75]
+        ccdf_beta_values = [3.0, 5.0, 10.0, 20.0, 50.0]
+        ccdf_gamma_values = [0.75]
 
         # Or one beta, one gamma:
         # ccdf_beta_values = [0.5]
@@ -196,4 +201,17 @@ if __name__ == "__main__":
             n=ccdf_n,
             seed=ccdf_seed,
         )
+
+    # -----------------------------
+# Global clustering limit experiment
+# -----------------------------
+if run_clustering_limit:
+    limit_experiment.run_experiment(
+        c_ed=5.0,
+        gamma_values=[0.2, 0.4, 0.6, 0.9],
+        n_values=[100, 250, 500, 1000, 2000, 5000],
+        R=5,
+        base_seed=base_seed,
+        make_plot=True,
+    )
     
