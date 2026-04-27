@@ -73,6 +73,8 @@ def parameter_sweep(param_grid, n, R, base_seed, progress_updates=100):
     Saves raw results to CSV and returns (result_table, run_label). 
     """
 
+    start_time = datetime.now()
+
     result_table = []
     total = len(param_grid)
     stride = max(1, total // progress_updates)
@@ -85,8 +87,10 @@ def parameter_sweep(param_grid, n, R, base_seed, progress_updates=100):
             combos_done = idx
             sims_done = idx * R
             print(f"{combos_done}/{total} combos finished ({sims_done} sims)")
+    
+    end_time = datetime.now()
 
-    run_label = make_finished_time_label()
+    run_label = make_run_label(start_time, end_time)
     results_io.save_raw_results(result_table, run_label)
 
     return result_table, run_label
@@ -228,7 +232,7 @@ def plot_metric_panels(summary_table, metric_keys, x_param="beta", y_param="gamm
         fig.suptitle(
             ", ".join(title_parts),
             fontsize=14,
-            y=1.02,
+            y=0.995,
         )
 
     for idx, metric_key in enumerate(metric_keys):
@@ -237,12 +241,12 @@ def plot_metric_panels(summary_table, metric_keys, x_param="beta", y_param="gamm
     for idx in range(len(metric_keys), len(axes)):
         fig.delaxes(axes[idx])
 
-    fig.tight_layout(rect=[0, 0, 1, 0.97])
+    fig.tight_layout()
 
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    filename = run_label or make_finished_time_label()
+    filename = run_label if run_label is not None else make_finished_time_label()
     filepath = output_dir / f"{filename}.png"
 
     fig.savefig(filepath, dpi=200)
@@ -308,3 +312,22 @@ def make_finished_time_label():
     month = month_names[now.month]
 
     return f"{now.day}{month}_{now.strftime('%H%M')}"
+
+def make_run_label(start_time, end_time):
+    month_names = {
+        1: "january",
+        2: "february",
+        3: "march",
+        4: "april",
+        5: "may",
+        6: "june",
+        7: "july",
+        8: "august",
+        9: "september",
+        10: "october",
+        11: "november",
+        12: "december",
+    }
+
+    month = month_names[start_time.month]
+    return f"{start_time.day}{month}_{start_time.strftime('%H%M')}_{end_time.strftime('%H%M')}"

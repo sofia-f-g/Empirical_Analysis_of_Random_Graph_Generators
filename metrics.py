@@ -7,7 +7,7 @@ from scipy.stats import norm
 
 ### Basic Graph Helpers ###
 
-def build_adjacency(V, E, directed=False):
+def build_undirected_adjacency(V, E):
     """ Converts edge list into adjacency representaion to make
         metric computation efficient """
     
@@ -229,7 +229,7 @@ def clustering_coefficient(V, E):
     used in the reference paper.
     """
 
-    adj = build_adjacency(V, E, directed=False)
+    adj = build_undirected_adjacency(V, E)
     adj_sets = [set(neighbors) for neighbors in adj]
     index_of = {int(v_id): idx for idx, v_id in enumerate(np.asarray(V['id']))}
 
@@ -268,18 +268,13 @@ def clustering_coefficient(V, E):
 def average_shortest_path_length(V, E):
     """ Average shortest-path length over all connected 
         vertex pairs in an undirected graph """
-
-    adjacency = build_adjacency(V, E)
-    n = len(adjacency)
     
-    total_dist = 0
-    total_pairs = 0
-
-    adj = build_adjacency(V, E)
+    adj = build_undirected_adjacency(V, E)
     id_array = np.asarray(V['id'])
     index_of = {int(v_id): idx for idx, v_id in enumerate(id_array)}
     n = len(adj)
     total, count = 0, 0
+
     for src in range(n):
         dist = [-1] * n
         dist[src] = 0

@@ -92,14 +92,11 @@ def run_simulation(beta_cfg, gamma_cfg, n, R, base_seed, metrics_to_plot, hardco
         gamma_label = gamma_cfg["step"]
 
 
-    base_params = {
-        "beta":       beta_values[0],
-        "gamma":      gamma_values[0],
-        "dim":        2,
-        "space_cfg":  {"bounds": [[-0.5, 0.5], [-0.5, 0.5]]},
-        "age_cfg":    {"min": 0.0, "max": float(n)},
-        "profile_cfg": {"type": "normalized_cutoff"},
-    }
+    base_params = build_params(
+        n=n,
+        beta=beta_values[0],
+        gamma=gamma_values[0],
+    )
 
     ranges_dict = {
         "beta": beta_values,
@@ -135,21 +132,21 @@ if __name__ == "__main__":
     # -----------------------------
     # General simulation settings
     # -----------------------------  
-    n, R, base_seed = 200, 10, 0  
+    n, R, base_seed = 2000, 10, 0  
     
     # -----------------------------
     # Choose what to run
     # -----------------------------
     hardcoded = False
     run_heatmaps = True
-    run_ccdf_plots = True
+    run_ccdf_plots = False
     
     # -----------------------------
     # Heat-map / parameter sweep settings
     # -----------------------------
     if not hardcoded:
-        beta_cfg = {"min": 0.01, "max": 3.0, "step": 0.2}    # edit step to change beta resolution
-        gamma_cfg = {"min": 0.01, "max": 0.95, "step": 0.1}   # edit step to change gamma resolution KAN INTE VARA 1 ENLIGT TEORIN!!
+        beta_cfg = {"min": 0.05, "max": 3.0, "step": 0.2}    # edit step to change beta resolution
+        gamma_cfg = {"min": 0.05, "max": 0.95, "step": 0.1}   # edit step to change gamma resolution KAN INTE VARA 1 ENLIGT TEORIN!!
     else:
         beta_cfg = [0.1, 0.3, 0.5]
         gamma_cfg = [0.4, 0.45, 0.5, 0.55, 0.6]
