@@ -68,6 +68,7 @@ def run_degree_distribution_plots(beta_values, gamma_values, n, seed):
         n=n,
         seed=seed,
         row_label=row_label,
+        show_theory=True
     )
 
     path = output_dir / filename
@@ -178,16 +179,16 @@ if __name__ == "__main__":
 
         # Valid examples:
         # One beta, multiple gamma:
-        # ccdf_beta_values = [0.5]
-        # ccdf_gamma_values = [0.2, 0.4, 0.6, 0.8]
+        ccdf_beta_values = [3.0]
+        ccdf_gamma_values = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
         # Or multiple beta, one gamma:
         # ccdf_beta_values = [0.4, 0.8, 1.2, 2.0, 3.0]
-        # ccdf_gamma_values = [0.25]
+        # ccdf_gamma_values = [0.75]
 
         # Or one beta, one gamma:
-        ccdf_beta_values = [0.5]
-        ccdf_gamma_values = [0.5]
+        # ccdf_beta_values = [0.5]
+        # ccdf_gamma_values = [0.5]
 
         run_degree_distribution_plots(
             beta_values=ccdf_beta_values,
