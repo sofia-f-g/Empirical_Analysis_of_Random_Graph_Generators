@@ -68,7 +68,6 @@ def run_degree_distribution_plots(beta_values, gamma_values, n, seed):
         n=n,
         seed=seed,
         row_label=row_label,
-        show_theory=True,
     )
 
     path = output_dir / filename
@@ -132,14 +131,13 @@ if __name__ == "__main__":
     # -----------------------------
     # General simulation settings
     # -----------------------------  
-    n, R, base_seed = 2000, 10, 0  
-    
+    n, R, base_seed = 200, 100, 0
     # -----------------------------
     # Choose what to run
     # -----------------------------
     hardcoded = False
-    run_heatmaps = True
-    run_ccdf_plots = False
+    run_heatmaps = False
+    run_ccdf_plots = True
     
     # -----------------------------
     # Heat-map / parameter sweep settings
@@ -175,21 +173,21 @@ if __name__ == "__main__":
     # Degree distribution / CCDF settings
     # -----------------------------
     if run_ccdf_plots:
-        ccdf_n = 1000
+        ccdf_n = 2000
         ccdf_seed = base_seed
 
         # Valid examples:
         # One beta, multiple gamma:
-        ccdf_beta_values = [0.5]
-        ccdf_gamma_values = [0.2, 0.4, 0.6, 0.8]
+        # ccdf_beta_values = [0.5]
+        # ccdf_gamma_values = [0.2, 0.4, 0.6, 0.8]
 
         # Or multiple beta, one gamma:
-        # ccdf_beta_values = [0.2, 0.5, 0.8, 1.0]
-        # ccdf_gamma_values = [0.5]
+        # ccdf_beta_values = [0.4, 0.8, 1.2, 2.0, 3.0]
+        # ccdf_gamma_values = [0.25]
 
         # Or one beta, one gamma:
-        # ccdf_beta_values = [0.5]
-        # ccdf_gamma_values = [0.6]
+        ccdf_beta_values = [0.5]
+        ccdf_gamma_values = [0.5]
 
         run_degree_distribution_plots(
             beta_values=ccdf_beta_values,
