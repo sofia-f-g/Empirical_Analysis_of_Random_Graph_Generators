@@ -209,7 +209,7 @@ if run_clustering_limit:
     limit_experiment.run_experiment(
         c_ed=5.0,
         gamma_values=[0.2, 0.4, 0.6, 0.9],
-        n_values=[100, 250, 500, 1000, 2000, 5000],
+        n_values=[100, 250, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000],
         R=5,
         base_seed=base_seed,
         make_plot=True,
