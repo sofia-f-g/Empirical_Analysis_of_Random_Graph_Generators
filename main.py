@@ -142,8 +142,8 @@ if __name__ == "__main__":
     # -----------------------------
     hardcoded = False
     run_heatmaps = False
-    run_ccdf_plots = False
-    run_clustering_limit = True
+    run_ccdf_plots = True
+    run_clustering_limit = False
     
     # -----------------------------
     # Heat-map / parameter sweep settings
@@ -179,7 +179,7 @@ if __name__ == "__main__":
     # Degree distribution / CCDF settings
     # -----------------------------
     if run_ccdf_plots:
-        ccdf_n = 2000
+        ccdf_n = 10000
         ccdf_seed = base_seed
 
         # Valid examples:
@@ -188,12 +188,12 @@ if __name__ == "__main__":
         # ccdf_gamma_values = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 
         # Or multiple beta, one gamma:
-        ccdf_beta_values = [3.0, 5.0, 10.0, 20.0, 50.0]
-        ccdf_gamma_values = [0.75]
+        # ccdf_beta_values = [3.0, 5.0, 10.0, 20.0, 50.0]
+        # ccdf_gamma_values = [0.2]
 
         # Or one beta, one gamma:
-        # ccdf_beta_values = [0.5]
-        # ccdf_gamma_values = [0.5]
+        ccdf_beta_values = [1.5]
+        ccdf_gamma_values = [0.2]
 
         run_degree_distribution_plots(
             beta_values=ccdf_beta_values,
