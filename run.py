@@ -185,7 +185,7 @@ def summarise_over_replicates(result_table, run_label=None):
             for key, value in powerlaw_summary.items():
                 summary_row[f"powerlaw_{key}"] = value
 
-                
+
         summary_table.append(summary_row)
 
     if run_label is not None:

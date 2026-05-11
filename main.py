@@ -126,13 +126,13 @@ if __name__ == "__main__":
     # -----------------------------
     # General simulation settings
     # -----------------------------  
-    n, R, base_seed = 1000, 10, 0
+    n, R, base_seed = 5000, 50, 0
     # -----------------------------
     # Choose what to run
     # -----------------------------
     hardcoded = True
-    run_heatmaps = False
-    run_ccdf_plots = True
+    run_heatmaps = True
+    run_ccdf_plots = False
     run_clustering_limit = False
     
     # -----------------------------
