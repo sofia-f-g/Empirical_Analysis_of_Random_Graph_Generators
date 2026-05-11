@@ -1,8 +1,9 @@
 from pathlib import Path
-
 from matplotlib import pyplot as plt
 
-from distributions import plot_degree_distributions_grid
+from distributions import plot_rigorous_ccdf
+import generator
+import metrics
 import limit_experiment
 import run
 import numpy as np
@@ -45,41 +46,30 @@ def run_degree_distribution_plots(beta_values, gamma_values, n, seed):
 
     run_stamp = datetime.now().strftime("%d%b_%H%M").lower()
 
-    param_list = []
+
 
     for beta in beta_values:
         for gamma in gamma_values:
-            param_list.append(build_params(n, beta, gamma))
+            params = build_params(n=n, beta=beta, gamma=gamma)
 
-    if len(beta_values) == 1 and len(gamma_values) == 1:
-        row_label = "gamma"
-        beta = beta_values[0]
-        gamma = gamma_values[0]
-        filename = f"{run_stamp}_beta{beta}_gamma{gamma}_n{n}.png"
+            V, E = generator.generate_graph(params, n, seed=seed)
+            degree_data = metrics.compute_degree_sequences(V, E)
 
-    elif len(beta_values) == 1:
-        row_label = "gamma"
-        fixed_beta = beta_values[0]
-        filename = f"{run_stamp}_fixed_beta{fixed_beta}_n{n}.png"
+            indegree_seq = degree_data["indegree"]
+            outdegree_seq = degree_data["outdegree"]
 
-    else:
-        row_label = "beta"
-        fixed_gamma = gamma_values[0]
-        filename = f"{run_stamp}_fixed_gamma{fixed_gamma}_n{n}.png"
+            filename = f"{run_stamp}_beta{beta}_gamma{gamma}_n{n}_ccdf.png"
+            path = output_dir / filename
 
-    fig = plot_degree_distributions_grid(
-        param_list=param_list,
-        n=n,
-        seed=seed,
-        row_label=row_label,
-        show_theory=True
-    )
+            plot_rigorous_ccdf(
+                indegree_seq=indegree_seq,
+                outdegree_seq=outdegree_seq,
+                gamma=gamma,
+                beta=beta,
+                save_path=path,
+            )
 
-    path = output_dir / filename
-    fig.savefig(path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-
-    print(f"Saved degree distribution plot to: {path}")
+            print(f"Saved rigorous CCDF plot to: {path}")
 
 def run_simulation(beta_cfg, gamma_cfg, n, R, base_seed, metrics_to_plot, hardcoded=False):
     if hardcoded:
@@ -136,11 +126,11 @@ if __name__ == "__main__":
     # -----------------------------
     # General simulation settings
     # -----------------------------  
-    n, R, base_seed = 200, 50, 0
+    n, R, base_seed = 1000, 10, 0
     # -----------------------------
     # Choose what to run
     # -----------------------------
-    hardcoded = False
+    hardcoded = True
     run_heatmaps = False
     run_ccdf_plots = True
     run_clustering_limit = False
@@ -149,11 +139,11 @@ if __name__ == "__main__":
     # Heat-map / parameter sweep settings
     # -----------------------------
     if not hardcoded:
-        beta_cfg = {"min": 50.0, "max": 250.0, "step": 50.0}    # edit step to change beta resolution
-        gamma_cfg = {"min": 0.05, "max": 0.95, "step": 0.1}   # edit step to change gamma resolution KAN INTE VARA 1 ENLIGT TEORIN!!
+        beta_cfg = {"min": 0.35, "max": 1.5, "step": 0.25}    # edit step to change beta resolution
+        gamma_cfg = {"min": 0.1, "max": 0.95, "step": 0.1}   # edit step to change gamma resolution KAN INTE VARA 1 ENLIGT TEORIN!!
     else:
-        beta_cfg = [0.1, 0.3, 0.5]
-        gamma_cfg = [0.4, 0.45, 0.5, 0.55, 0.6]
+        beta_cfg = [1.5]
+        gamma_cfg = [0.3, 0.6, 0.7, 0.9]
 
     metrics_to_plot = [
         "n_edges_mean",
@@ -168,7 +158,19 @@ if __name__ == "__main__":
         "indegree_mean_mean",
         "outdegree_max_mean",
         "indegree_max_mean",
-        
+
+        # New empirical power-law diagnostics
+        "indegree_alpha_mean",
+        "indegree_xmin_mean",
+        "indegree_KS_mean",
+        "indegree_LRT_log_R_mean",
+        "indegree_LRT_log_p_mean",
+        "indegree_LRT_trunc_R_mean",
+        "indegree_LRT_trunc_p_mean",
+
+        #"powerlaw_fraction_PL_superior_to_lognormal",
+        #"powerlaw_fraction_lognormal_superior",
+        #"powerlaw_fraction_inconclusive",
     ]
 
     if run_heatmaps:
@@ -184,16 +186,16 @@ if __name__ == "__main__":
 
         # Valid examples:
         # One beta, multiple gamma:
-        # ccdf_beta_values = [3.0]
-        # ccdf_gamma_values = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+        ccdf_beta_values = [1.5]
+        ccdf_gamma_values = [0.3, 0.6, 0.7, 0.9]
 
         # Or multiple beta, one gamma:
         # ccdf_beta_values = [3.0, 5.0, 10.0, 20.0, 50.0]
         # ccdf_gamma_values = [0.2]
 
         # Or one beta, one gamma:
-        ccdf_beta_values = [1.5]
-        ccdf_gamma_values = [0.2]
+        #ccdf_beta_values = [1.5]
+        #ccdf_gamma_values = [0.2]
 
         run_degree_distribution_plots(
             beta_values=ccdf_beta_values,
