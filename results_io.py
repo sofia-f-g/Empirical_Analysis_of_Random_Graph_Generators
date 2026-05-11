@@ -4,7 +4,7 @@ import os
 
 ### Saving Results ###
 
-def save_raw_results(result_table, run_label, results_dir="results/raw"):
+def save_raw_results(result_table, run_label, results_dir="powerlaw_results/raw"):
     """Saves the per-replicate result table to CSV.
 
     Parameters
@@ -37,7 +37,7 @@ def save_raw_results(result_table, run_label, results_dir="results/raw"):
     return filepath
 
 
-def save_summary(summary_table, run_label, results_dir="results/summary"):
+def save_summary(summary_table, run_label, results_dir="powerlaw_results/summary"):
     """Saves the aggregated summary table to CSV.
 
     Parameters

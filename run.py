@@ -17,7 +17,7 @@ def run_one_simulation(params, n, seed):
     generator.validate_params(params)
 
     (V, E) = generator.generate_graph(params, n, seed)
-    metric_row = metrics.compute_metrics(V, E)
+    metric_row = metrics.compute_metrics(V, E, params=params)
 
     # Attach which parameters generated the results
     metric_row.update({
@@ -178,6 +178,13 @@ def summarise_over_replicates(result_table, run_label=None):
             summary_row['outdegree_mean_vs_theory_ratio'] = empirical / theo
         else:
             summary_row['outdegree_mean_vs_theory_ratio'] = float('nan')
+
+        if "indegree_LRT_log_R" in rows[0] and "indegree_LRT_log_p" in rows[0]:
+            powerlaw_summary = statistics.aggregate_powerlaw_metrics(rows)
+
+            for key, value in powerlaw_summary.items():
+                summary_row[f"powerlaw_{key}"] = value
+
 
         summary_table.append(summary_row)
 
